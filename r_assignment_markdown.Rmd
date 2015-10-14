@@ -1,0 +1,45 @@
+---
+title: "r_assignment_markdown"
+author: "Tom McBrien"
+date: "October 14, 2015"
+output: pdf_document
+---
+
+##Loading and Merging Data##
+
+```{r loading and merging}
+d <- read.csv("Dataset_S1.txt", sep = ',', header = TRUE) #reading in Data
+head(d)
+rcmb <- read.delim("motif_recombrates.txt", header = TRUE) #read in motif recomb rates data
+rpts <- read.delim("motif_repeats.txt", header = TRUE) #read in motif repeat rates data
+rcmb$pos <- paste(rcmb$chr, rcmb$motif_start, sep="-") #making column of specific positions per chromosome
+rpts$pos <- paste(rpts$chr, rpts$motif_start, sep="-") #same as above with repeats file
+joined <- merge(rcmb, rpts, by.x="pos", by.y="pos") #mergin
+head(joined)
+```
+
+##Analysing Data##
+
+```{r analysis}
+aggregate(joined$recom, list(motif=joined$motif), mean) #this uses the aggregate function to give two separate means of recombination rates: one for one motif and one for another
+```
+
+##Analyzing if Distributions of Recombination Rate Differs by Motif Type##
+
+```{r distribution plotting}
+library(ggplot2)
+ggplot(joined) + geom_density(aes(x=recom, linetype=name), fill='black', alpha=0.5)
+```
+
+##Recombination Rates of Motif Types Vs. Background##
+
+```{r analysis and plotting}
+joined_with_background <- merge(rcmb, rpts, by.x="pos", by.y="pos", all.x = TRUE) #merging with left outer join
+head(joined_with_background)
+aggregate(joined_with_background$recom, list(motif=joined_with_background$motif), mean)
+joined_with_background_split <- split(joined_with_background$recom, joined_with_background$name)
+str(joined_with_background_split)
+head(joined_with_background)
+```
+#look up Renaming a Categorical Variable
+
