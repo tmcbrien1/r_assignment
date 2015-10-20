@@ -33,13 +33,21 @@ ggplot(joined) + geom_density(aes(x=recom, linetype=name), fill='black', alpha=0
 
 ##Recombination Rates of Motif Types Vs. Background##
 
-```{r analysis and plotting}
-joined_with_background <- merge(rcmb, rpts, by.x="pos", by.y="pos", all.x = TRUE) #merging with left outer join
+```{r analysis and plotting, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+joined_with_background <- merge(rcmb, rpts, by.x="pos", by.y="pos", all.x = TRUE) #merging with left outer join so i get all data
 head(joined_with_background)
-aggregate(joined_with_background$recom, list(motif=joined_with_background$motif), mean)
-joined_with_background_split <- split(joined_with_background$recom, joined_with_background$name)
-str(joined_with_background_split)
-head(joined_with_background)
-```
-#look up Renaming a Categorical Variable
+joined_with_background$category <- ifelse(joined_with_background$name == "THE1B", 1, 2) #I am making a new column that will call all THE1B "1", L2 "2", and <NA> "NA" because, currently, I cannot separate <NA> in summary or ggplot
+head(joined_with_background[,c("chr.x","motif","chr.y","name","category")], 50)
+joined_with_background[c("category")][is.na(joined_with_background[c("category")])] <- 0 #this will make it so that all NAs will be converted into 0 so that I can use numbers to separate for summary
+joined_with_background$newname <- ifelse(joined_with_background$category==0, joined_with_background$newname <- "NA", ifelse(joined_with_background$category==1, joined_with_background$newname <- "THE1B", joined_with_background$newname <- "L2")) 
+#GGPLOT should now be able to separate out linetypes because not using a continual number variable
+head(joined_with_background[,c("chr.x","motif","chr.y","name","category","newname")], 100)
+##SUMMARY OF NON-BACKGROUND RECOMB RATES##
+summary(joined_with_background$recom[joined_with_background$category>=1])
+##SUMMARY OF BACKGROUND RECOMB RATES##
+summary(joined_with_background$recom[joined_with_background$category==0])
 
+##PLOT OF DIFFERENCES IN RECOM RATES##
+
+ggplot(joined_with_background) + geom_density(aes(x=recom, linetype=newname), fill='black', alpha=0.2)
+```
